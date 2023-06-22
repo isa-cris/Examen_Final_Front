@@ -104,22 +104,156 @@ function listarUsuarios() {
     });
 }
 
-function alertas(mensaje, tipo) {
-    var color = "";
-    if (tipo == 1) {
-      //success verde
-      color = "success";
-    } else {
-      //danger rojo
-      color = "danger";
-    }
-    var alerta = `<div class="alert alert-${color} alert-dismissible fade show" role="alert">
-                      <strong><i class="fa-solid fa-triangle-exclamation"></i></strong>
-                          ${mensaje}
-                      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                   </div>`;
-    document.getElementById("datosuser").innerHTML = alerta;
+function eliminarUsuario(user_id) {
+  validaToken();
+  var settings = {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: localStorage.token,
+    },
+  };
+  fetch(urlApi + "/user/" + user_id, settings)
+    .then((response) => response.json())
+    .then(function (data) {
+      listarUsuarios();
+      alertas("Se ha eliminado el usuario exitosamente!", 2);
+    });
+}
+
+function verUsuario(user_id) {
+  validaToken();
+  $("#table_user").show();
+  $("#table_car").hide();
+  var settings = {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: localStorage.token,
+    },
+  };
+  fetch(urlApi + "/user/" + user_id, settings)
+    .then((response) => response.json())
+    .then(function (response) {
+      var cadena = "";
+      var usuario = response.data.user;
+      if (usuario) {
+        cadena = `
+                <div class="p-3 mb-2 bg-light text-dark">
+                    <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Visualizar Usuario</h1>
+                </div>
+                <ul class="list-group">
+                    <li class="list-group-item">Nombre: ${usuario.firstName}</li>
+                    <li class="list-group-item">Apellido: ${usuario.lastName}</li>
+                    <li class="list-group-item">Correo: ${usuario.email}</li>
+                </ul>`;
+      }
+      document.getElementById("contentModal").innerHTML = cadena;
+      var myModal = new bootstrap.Modal(
+        document.getElementById("modalUsuario")
+      );
+      myModal.toggle();
+    });
+}
+
+function verModificarUsuario(user_id) {
+  validaToken();
+  var settings = {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: localStorage.token,
+    },
+  };
+  fetch(urlApi + "/user/" + user_id, settings)
+    .then((response) => response.json())
+    .then(function (response) {
+      var cadena = "";
+      var usuario = response.data.user;
+      var date = usuario.birthday+"";
+                //console.log(date)
+        var dato =date.split('T');
+      if (usuario) {
+        cadena = `
+                <div class="p-3 mb-2 bg-light text-dark">
+                    <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Modificar Usuario</h1>
+                </div>
+              
+                <form action="" method="post" id="modificar">
+                    <input type="hidden" name="id" id="id" value="${usuario.user_id}">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <input type="text" class="form-control" name="firstName" id="firstName" required value="${usuario.firstName}"> <br>
+                    <label for="lastName"  class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="lastName" id="lastName" required value="${usuario.lastName}"> <br>
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" id="email" required value="${usuario.email}"> <br>
+                    <label for="address" class="form-label">Adress</label>
+                    <input type="text" class="form-control" name="address" id="address" required value="${usuario.address}"> <br>
+                    <label for="Data of Birth" class="form-label">Date of birth</label>
+                    <input type="date" class="form-control" name="birthday" id="birthday" required value="${dato[0]}"> <br>
+                    <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required><br>
+                    <button type="button" class="btn btn-outline-warning" 
+                        onclick="modificarUsuario('${usuario.user_id}')">Modificar
+                    </button>
+                </form>`;
+      }
+      document.getElementById("contentModal").innerHTML = cadena;
+      var myModal = new bootstrap.Modal(document.getElementById("modalUsuario"));
+      myModal.toggle();
+    });
+}
+
+async function modificarUsuario(user_id) {
+  validaToken();
+  var myForm = document.getElementById("modificar");
+  var formData = new FormData(myForm);
+  var jsonData = {};
+  for (var [k, v] of formData) {
+    //convertimos los datos a json
+    jsonData[k] = v;
   }
+  const request = await fetch(urlApi + "/user/" + user_id, {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: localStorage.token,
+    },
+    body: JSON.stringify(jsonData),
+  });
+  
+  if (request.ok) {
+    Swal.fire({
+      position: 'top-end',
+      icon: 'success',
+      title: 'se ha atualizado con exiso el usuario',
+      showConfirmButton: false,
+      timer: 1500
+    })
+    const respuesta = await request.json();
+    setTimeout(function () {
+      listarUsuarios();
+      document.getElementById("contentModal").innerHTML = "";
+  var myModalEl = document.getElementById("modalUsuario");
+  var modal = bootstrap.Modal.getInstance(myModalEl); // Returns a Bootstrap modal instance
+  modal.hide();
+  }, 2000);
+  }else{
+    Swal.fire({
+        position: 'top-end',
+        icon: 'error',
+        text: 'no se actualizo el usuario',
+        showConfirmButton: false,
+        timer: 3000
+      });
+}
+  
+}
+
   
   function registerFormUsers() {
     cadena = `
@@ -268,58 +402,25 @@ function alertas(mensaje, tipo) {
     if (localStorage.token == undefined) {
       salir();
     }
+}
+  
+function alertas(mensaje, tipo) {
+  var color = "";
+  if (tipo == 1) {
+    //success verde
+    color = "success";
+  } else {
+    //danger rojo
+    color = "danger";
   }
+  var alerta = `<div class="alert alert-${color} alert-dismissible fade show" role="alert">
+                    <strong><i class="fa-solid fa-triangle-exclamation"></i></strong>
+                        ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                 </div>`;
+  document.getElementById("datosuser").innerHTML = alerta;
+}
 
-  function eliminarUsuario(user_id) {
-    validaToken();
-    var settings = {
-      method: "DELETE",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: localStorage.token,
-      },
-    };
-    fetch(urlApi + "/user/" + user_id, settings)
-      .then((response) => response.json())
-      .then(function (data) {
-        listarUsuarios();
-        alertas("Se ha eliminado el usuario exitosamente!", 2);
-      });
-  }
+ 
 
-  function verUsuario(user_id) {
-    validaToken();
-    $("#table_user").show();
-    $("#table_car").hide();
-    var settings = {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: localStorage.token,
-      },
-    };
-    fetch(urlApi + "/user/" + user_id, settings)
-      .then((response) => response.json())
-      .then(function (response) {
-        var cadena = "";
-        var usuario = response.data.user;
-        if (usuario) {
-          cadena = `
-                  <div class="p-3 mb-2 bg-light text-dark">
-                      <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Visualizar Usuario</h1>
-                  </div>
-                  <ul class="list-group">
-                      <li class="list-group-item">Nombre: ${usuario.firstName}</li>
-                      <li class="list-group-item">Apellido: ${usuario.lastName}</li>
-                      <li class="list-group-item">Correo: ${usuario.email}</li>
-                  </ul>`;
-        }
-        document.getElementById("contentModal").innerHTML = cadena;
-        var myModal = new bootstrap.Modal(
-          document.getElementById("modalUsuario")
-        );
-        myModal.toggle();
-      });
-  }
+ 
