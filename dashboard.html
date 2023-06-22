@@ -30,6 +30,10 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="#" onclick="listarCars()"><i class="fa-solid fa-car fa-beat"></i> Todos los carros
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="#" onclick="salir()"><i class="fa-solid fa-right-from-bracket fa-beat"></i> Salir
             </a>
           </li>
@@ -74,9 +78,37 @@
             </tbody>
           </table>
         </div>
+
+        <div style="display:none;" id="table_cars" class="card-body">
+
+          <div id="datoscar"></div>
+
+          <div class="p-3 mb-2 bg-light text-dark">
+            <h5 class="display-5"><i class="fa-solid fa-list"></i> Listado de vehiculos</h5>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Carro</th>
+                <th scope="col">Modelo</th>
+                <th scope="col">Color</th>
+                <th scope="col">Año del modelo</th>
+                <th scope="col">Vin</th>
+                <th scope="col">Precio</th>
+                <th scope="col">Valido</th>
+
+              </tr>
+            </thead>
+            <tbody id="listarCars">
+
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
-
 
     <!-- Modal -->
     <div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
