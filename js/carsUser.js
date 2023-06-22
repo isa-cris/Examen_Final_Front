@@ -102,23 +102,6 @@ function verCar(id) {
       });
   }
   
-  function alertas(mensaje, tipo) {
-      var color = "";
-      if (tipo == 1) {
-        //success verde
-        color = "success";
-      } else {
-        //danger rojo
-        color = "danger";
-      }
-      var alerta = `<div class="alert alert-${color} alert-dismissible fade show" role="alert">
-                        <strong><i class="fa-solid fa-triangle-exclamation"></i></strong>
-                            ${mensaje}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                     </div>`;
-      document.getElementById("datoscaruser").innerHTML = alerta;
-    }
-
     function verModificarCar(id,user_id) {
         validaToken();
         var settings = {
@@ -215,4 +198,207 @@ function verCar(id) {
             });
       }
         
-      }
+}
+
+//registrar con id 
+function registerFormCarsUserId(user_id) {
+  var settings = {
+      method: "GET",
+      headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: localStorage.token,
+      },
+  };
+  fetch(urlApi + "/user/" + user_id, settings)
+      .then((response) => response.json())
+      .then(function (response) {
+          var cadena = "";
+          var usuario = response.data.user;
+
+          if (usuario) {
+  
+              cadena = `
+            <div class="p-3 mb-2 bg-light text-dark">
+                <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Registrar Vehiculo con ID</h1>
+            </div>
+              
+            <form action="" method="post" id="registerForm">
+                  <label for="id" class="form-label">Ingrese un numero de 01 al 1000</label>
+                <input type="text" class="form-control" name="id" id="id"> <br>
+                
+                <button type="button" class="btn btn-outline-info" onclick="registrarCarUserId(${usuario.user_id})">Registrar</button>
+            </form>`;
+              document.getElementById("contentModal").innerHTML = cadena;
+              var myModal = new bootstrap.Modal(document.getElementById("modalUsuario"));
+              myModal.toggle();
+          }
+});
+} 
+async function registrarCarUserId(user_id) {
+  var myForm = document.getElementById("registerForm");
+  var formData = new FormData(myForm);
+  var jsonData = {};
+  for (var [k, v] of formData) {
+    //convertimos los datos a json
+    jsonData[k] = v;
+    }
+    //var user_id = localStorage.user_id;
+    var id = document.getElementById("id").value;
+
+  const request = await fetch(urlApi2 +"/api/cars/"+id+"/"+user_id, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: localStorage.token,
+    },
+    body: JSON.stringify(jsonData),
+  });
+  if (request.ok) {
+    Swal.fire({
+      position: 'top-end',
+      icon: 'success',
+      title: 'se ha registrado el vehiculo',
+      showConfirmButton: false,
+      timer: 1500
+    })
+    const respuesta = await request.json();
+    setTimeout(function () {
+      listarCarsUser(user_id);
+      document.getElementById("contentModal").innerHTML = "";
+  var myModalEl = document.getElementById("modalUsuario");
+  var modal = bootstrap.Modal.getInstance(myModalEl); // Returns a Bootstrap modal instance
+  modal.hide();
+  }, 2000);
+  }else{
+    Swal.fire({
+        position: 'top-end',
+        icon: 'error',
+        text: 'no se registro vehiculo',
+        showConfirmButton: false,
+        timer: 3000
+      });
+}
+}
+
+//registrar vehiculo con formulario
+function registerFormCarsUser(user_id) {
+var settings = {
+    method: "GET",
+    headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: localStorage.token,
+    },
+};
+fetch(urlApi + "/user/" + user_id, settings)
+    .then((response) => response.json())
+    .then(function (response) {
+        var cadena = "";
+        var usuario = response.data.user;
+
+        if (usuario) {
+
+            cadena = `
+          <div class="p-3 mb-2 bg-light text-dark">
+              <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Registrar Vehiculo</h1>
+          </div>
+            
+          <form action="" method="post" id="registerForm">
+
+              <label for="car" class="form-label">Ingrese nombre del vehiculo</label>
+              <input type="text" class="form-control" name="car" id="car"> <br>
+
+              <label for="car_color" class="form-label">Ingrese color del vehiculo</label>
+              <input type="text" class="form-control" name="car_color" id="car_color"> <br>
+
+              <label for="car_model" class="form-label">Ingrese modelo del vehiculo</label>
+              <input type="text" class="form-control" name="car_model" id="car_model"> <br>
+
+              <label for="car_model_year" class="form-label">Ingrese año de modelo del vehiculo</label>
+              <input type="text" class="form-control" name="car_model_year" id="car_model_year"> <br>
+
+              <label for="car_vin" class="form-label">Ingrese el vin del vehiculo</label>
+              <input type="text" class="form-control" name="car_vin" id="car_vin"> <br>
+
+              <label for="price" class="form-label">Ingrese el precio del vehiculo</label>
+              <input type="text" class="form-control" name="price" id="price"> <br>
+
+              <label for="availability" class="form-label">seleccione si esta disponible</label>
+              <select id="availability" name="availability" class="form-select" required>
+                    <option value""selected></option>
+                    <option value"true"> true</option>
+                    <option value"true"> false</option>
+              </select><br>
+              
+              <button type="button" class="btn btn-outline-info" onclick="registrarCarUser(${usuario.user_id})">Registrar</button>
+          </form>`;
+            document.getElementById("contentModal").innerHTML = cadena;
+            var myModal = new bootstrap.Modal(document.getElementById("modalUsuario"));
+            myModal.toggle();
+        }
+});
+}
+
+async function registrarCarUser(user_id) {
+var myForm = document.getElementById("registerForm");
+var formData = new FormData(myForm);
+var jsonData = {};
+for (var [k, v] of formData) {
+  //convertimos los datos a json
+  jsonData[k] = v;
+}
+
+const request = await fetch(urlApi2 +"/car/user/"+user_id, {
+  method: "POST",
+  headers: {
+    Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: localStorage.token,
+  },
+  body: JSON.stringify(jsonData),
+});
+if (request.ok) {
+  Swal.fire({
+    position: 'top-end',
+    icon: 'success',
+    title: 'se ha registrado el vehiculo',
+    showConfirmButton: false,
+    timer: 1500
+  })
+  const respuesta = await request.json();
+  setTimeout(function () {
+    listarCarsUser(user_id);
+    document.getElementById("contentModal").innerHTML = "";
+var myModalEl = document.getElementById("modalUsuario");
+var modal = bootstrap.Modal.getInstance(myModalEl); // Returns a Bootstrap modal instance
+modal.hide();
+}, 2000);
+}else{
+  Swal.fire({
+      position: 'top-end',
+      icon: 'error',
+      text: 'no se registro vehiculo',
+      showConfirmButton: false,
+      timer: 3000
+    });
+}
+}
+      
+function alertas(mensaje, tipo) {
+  var color = "";
+  if (tipo == 1) {
+    //success verde
+    color = "success";
+  } else {
+    //danger rojo
+    color = "danger";
+  }
+  var alerta = `<div class="alert alert-${color} alert-dismissible fade show" role="alert">
+                    <strong><i class="fa-solid fa-triangle-exclamation"></i></strong>
+                        ${mensaje}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                 </div>`;
+  document.getElementById("datoscaruser").innerHTML = alerta;
+}
