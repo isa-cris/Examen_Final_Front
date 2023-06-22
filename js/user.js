@@ -270,4 +270,56 @@ function alertas(mensaje, tipo) {
     }
   }
 
-  
+  function eliminarUsuario(user_id) {
+    validaToken();
+    var settings = {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: localStorage.token,
+      },
+    };
+    fetch(urlApi + "/user/" + user_id, settings)
+      .then((response) => response.json())
+      .then(function (data) {
+        listarUsuarios();
+        alertas("Se ha eliminado el usuario exitosamente!", 2);
+      });
+  }
+
+  function verUsuario(user_id) {
+    validaToken();
+    $("#table_user").show();
+    $("#table_car").hide();
+    var settings = {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: localStorage.token,
+      },
+    };
+    fetch(urlApi + "/user/" + user_id, settings)
+      .then((response) => response.json())
+      .then(function (response) {
+        var cadena = "";
+        var usuario = response.data.user;
+        if (usuario) {
+          cadena = `
+                  <div class="p-3 mb-2 bg-light text-dark">
+                      <h1 class="display-5"><i class="fa-solid fa-user-pen"></i> Visualizar Usuario</h1>
+                  </div>
+                  <ul class="list-group">
+                      <li class="list-group-item">Nombre: ${usuario.firstName}</li>
+                      <li class="list-group-item">Apellido: ${usuario.lastName}</li>
+                      <li class="list-group-item">Correo: ${usuario.email}</li>
+                  </ul>`;
+        }
+        document.getElementById("contentModal").innerHTML = cadena;
+        var myModal = new bootstrap.Modal(
+          document.getElementById("modalUsuario")
+        );
+        myModal.toggle();
+      });
+  }
